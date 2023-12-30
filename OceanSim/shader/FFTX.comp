@@ -1,0 +1,95 @@
+#version 440 core
+
+//const int N = 256;
+// the needed steps of IFFT
+const float PI = 3.14159265358979323;
+
+const int WORK_GROUP_SIZE = 32;
+
+layout (binding = 0, rg32f) uniform image2D image_in; 
+layout (binding = 1, rg32f) uniform image2D image_out;
+layout (binding = 2, r32f) uniform image1D butter_idx;
+uniform int N;
+const int steps = int(log2(N));
+
+
+// work_group_size
+layout(local_size_x = WORK_GROUP_SIZE*8, local_size_y = 1, local_size_z = 1) in;
+
+// share this so that all the work groups can access this
+shared vec2 sharedData[512];
+
+// utilities
+vec2 CompMul(vec2 c1, vec2 c2){
+	float real = c1.x*c2.x-c1.y*c2.y;
+	float img = c1.x*c2.y+c1.y*c2.x;
+	return vec2(real,img);
+}
+
+void main()
+{
+
+	// get the location in the workgroup
+	int xIdx = int(gl_GlobalInvocationID.x); 
+	int yIdx = int(gl_GlobalInvocationID.y);
+	
+	// where to store in the sharedData
+	int storeIdx_1 = 2*xIdx;
+	int storeIdx_2 = storeIdx_1+1;
+	// where to load 0-4 2-6 1-5 3-7 (when N=8)
+	int loadIdx_1 = int(imageLoad(butter_idx, storeIdx_1).r);
+	int loadIdx_2 = int(imageLoad(butter_idx, storeIdx_2).r);
+	// where to get the start value
+	ivec2 startLoad_1 = ivec2(loadIdx_1,yIdx);
+	ivec2 startLoad_2 = ivec2(loadIdx_2,yIdx);
+	
+	
+	
+	// ---now all the index are gotten---
+	
+	// get the start val
+	vec2 val_1 = imageLoad(image_in,startLoad_1).xy;
+	vec2 val_2 = imageLoad(image_in,startLoad_2).xy;
+	sharedData[storeIdx_1]=val_1;
+	sharedData[storeIdx_2]=val_2;
+	
+	// wait till every worker is up to date
+	memoryBarrierShared();
+	barrier();
+	
+	// now calculate FFT
+	int p = 1;
+	int k = xIdx % p;
+	for(int i=0;i < steps; i++){
+		int index1 = (xIdx-k)*2+k;
+		int index2 = (xIdx-k)*2+k+p;
+		
+		// get the value
+		val_1 = sharedData[index1];
+		val_2 = sharedData[index2];
+		float ccos = cos(2.0*PI*float(k)/float(p*2));
+		float ssin = sin(2.0*PI*float(k)/float(p*2));
+		vec2 curW = vec2(ccos, ssin);
+		vec2 mul = CompMul(curW,val_2);
+		
+		// store the calculated value
+		sharedData[index1] = val_1 + mul;
+		sharedData[index2] = val_1 - mul;
+		
+		// update p,k
+		p = p*2;
+		k = xIdx%p;
+		
+		// make sure all updated
+		memoryBarrierShared();
+		barrier();
+	}
+	// store the final result
+	
+	// where to store the final result
+	ivec2 finalStore_1 = ivec2(storeIdx_1,yIdx);
+	ivec2 finalStore_2 = ivec2(storeIdx_2,yIdx);
+	// store it
+	imageStore(image_out,finalStore_1,vec4(sharedData[storeIdx_1],0.0,0.0));
+	imageStore(image_out,finalStore_2,vec4(sharedData[storeIdx_2],0.0,0.0));
+}

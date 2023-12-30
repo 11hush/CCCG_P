@@ -1,0 +1,52 @@
+#version 440 core
+//used to calculate height from h0 h0conj
+
+const int LOCAL_WORK_GROUP_SIZE = 32;
+
+const int L = 1000;
+//const int N = 256;
+const float G = 9.8;
+const float PI = 3.14159265358979323;
+uniform int N;
+layout(binding = 0 ,rg32f) uniform image2D imageH0;
+layout(binding = 1 ,rg32f) uniform image2D imageH0Conj;
+layout(binding = 2 ,rg32f) uniform image2D imageOut;
+
+uniform float time;
+
+layout(local_size_x = LOCAL_WORK_GROUP_SIZE, local_size_y = LOCAL_WORK_GROUP_SIZE, local_size_z = 1) in;
+
+// utilities
+vec2 CompMul(vec2 c1, vec2 c2){
+	float real = c1.x*c2.x-c1.y*c2.y;
+	float img = c1.x*c2.y+c1.y*c2.x;
+	return vec2(real,img);
+}
+
+vec2 CompExp(vec2 c) 
+{
+	float real = exp(c.x) * cos(c.y);
+	float img = exp(c.x) * sin(c.y);
+	return vec2(real, img);
+}
+
+void main()
+{
+	ivec2 storeLoc = ivec2(int(gl_GlobalInvocationID.x), int(gl_GlobalInvocationID.y));
+	
+	// first get k
+	vec2 k = vec2(2*PI*(storeLoc.x - N / 2)/L, 2*PI*(storeLoc.y - N / 2)/L);
+	float wt = sqrt(G * length(k))*time;
+	// get h0 and h0conj
+	vec2 h0 = imageLoad(imageH0, storeLoc).xy;
+	vec2 h0Conj = imageLoad(imageH0Conj, storeLoc).xy;
+	
+	vec2 e1 = CompExp(vec2(0.0,wt));
+	vec2 e2 = CompExp(vec2(0.0,-wt));
+	vec2 h1 = CompMul(h0,e1);
+	vec2 h2 = CompMul(h0Conj,e2);
+	vec2 res = h1+h2;
+	// store the result
+	imageStore(imageOut, storeLoc, vec4(res, 0.0, 0.0));
+
+}

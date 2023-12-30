@@ -1,0 +1,39 @@
+﻿  OceanSim.cpp
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(28,21): warning C4305: “初始化”: 从“double”到“const float”截断
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(30,22): warning C4305: “初始化”: 从“double”到“const float”截断
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(31,23): warning C4244: “初始化”: 从“double”转换到“const int”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(118,23): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(119,23): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(130,26): warning C4244: “-=”: 从“double”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(150,22): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\ocean.h(168,57): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\sphere.h(43,17): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\sphere.h(44,17): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\sphere.h(47,13): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\include\sphere.h(124,41): warning C4267: “参数”: 从“size_t”转换到“GLsizei”，可能丢失数据
+  (编译源文件“OceanSim.cpp”)
+  
+C:\college_courses\workspaces\opengl_workspace\OceanSim\OceanSim\OceanSim.cpp(187,17): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  OceanSim.vcxproj -> C:\college_courses\workspaces\opengl_workspace\OceanSim\x64\Debug\OceanSim.exe
