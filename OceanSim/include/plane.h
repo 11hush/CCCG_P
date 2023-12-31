@@ -121,6 +121,8 @@ public:
     
     Plane() { }
 
+    void is_crash() { to_land = true; };
+
     void init(glm::vec3 Pos) {
         Position = Pos;
         // generate the VAOs, VBO, VEO... shader and texture.
@@ -231,7 +233,6 @@ public:
         Right = glm::normalize(glm::cross(Front, glm::vec3(0.0f, 1.0f, 0.0f)));
         Up = glm::normalize(glm::cross(Right, Front));
 
-
         Position += MovementSpeed * deltaTime * Front;
     }
 
@@ -244,7 +245,8 @@ public:
         }
         Position.z -= MovementSpeed * deltaTime;
         // Position.z -= velocity_on_wheel * deltaTime;
-        if (Position.z <= -25.0f) {
+        if (Position.z <= -25.0f) 
+        {
             if (MovementSpeed < velocity_on_wheel) {        // no enough speed
                 std::cout << MovementSpeed << " < " << velocity_on_wheel << std::endl;
                 // pause = true;
@@ -256,7 +258,9 @@ public:
             
             std::cout << "speed and pitch:\t" << MovementSpeed << ": " << Pitch << std::endl;
             std::cout << "Position:\t" << Position.x << " " << Position.y << " " << Position.z << std::endl;
-        } else if (Position.z < -19.286f && Position.z > -25.0f) {
+        } 
+        else if (Position.z < -19.286f && Position.z > -25.0f) 
+        {
             // position.y
             float x = Position.z;
             Position.y = x * x * 0.0193f + 0.7476f * x + 7.2254f + 3.0f; 
@@ -286,12 +290,15 @@ public:
         }
 
         Roll_delta += Roll_rate_time * 2 * deltaTime;
-        if (Roll_delta > 3.1415f) {
+        if (Roll_delta > 3.1415f) 
+        {
             Roll_delta = 0.0f;
             Yaw += 180.0f;
-            if (Pitch < 0) {
+            if (Pitch < 0) 
+            {
                 Pitch += 180.0f;
-            } else {
+            } else 
+            {
                 Pitch -= 180.0f;
             }
             return true;
@@ -305,85 +312,103 @@ public:
             pause = !pause;
         }
         
-        if (pause) {
+        if (pause) 
+        {
             // finish, stay still
-        } else if (on_wheels) {
+        } 
+        else if (on_wheels) 
+        {
             bef_air(direction, deltaTime);             // on deck
-        } else if (!take_off_suc) {                    // if fail to take off
+        } 
+        else if (!take_off_suc) 
+        {                    // if fail to take off
             fall(deltaTime);
-        } else if (to_land) {
+        } 
+        else if (to_land) 
+        {
             landing(direction, deltaTime);
-
-
-        } else {                            // process key-input after in-air
+        } 
+        else 
+        {                            // process key-input after in-air
             // change the velocity
-            if (direction == FORWARD){
+            if (direction == FORWARD)
+            {
                 MovementSpeed += deltaTime * Accel;
             }
-            if (direction == BACKWARD) {
+            if (direction == BACKWARD) 
+            {
                 MovementSpeed -= deltaTime * Accel;
-                if (MovementSpeed < 0) {
+                if (MovementSpeed < 0) 
+                {
                     MovementSpeed = 0.0f;
                 }
             }
             float velocity = MovementSpeed * deltaTime;
 
             // IDLE: move 
-            if (direction == IDLE) {
+            if (direction == IDLE) 
+            {
                 Position += Front * velocity;
             } 
             // move left / right (no angle change)
             // Euler angle needed...
-            if (direction == LEFT) {
+            if (direction == LEFT) 
+            {
                 // std::cout << Right.x << " " << Right.y << " " << Right.z << std::endl;
                 Position -= Right * velocity;
             }
-            if (direction == RIGHT) {
+            if (direction == RIGHT) 
+            {
                 // std::cout << Right.x << " " << Right.y << " " << Right.z << std::endl;
                 Position += Right * velocity;
             }
 
             // rot UP / DOWN (Pitch)....
-            if (direction == REC_UD) {
-            
-
-                if (Pitch > ud_velocity) {
+            if (direction == REC_UD) 
+            {
+                if (Pitch > ud_velocity) 
+                {
                     Pitch -= ud_velocity;
-                }  else if (Pitch < -ud_velocity) {
+                }  
+                else if (Pitch < -ud_velocity) 
+                {
                     Pitch += ud_velocity;
-                } else {
+                } 
+                else 
+                {
                     Pitch = 0.0f;
                 }
-
-                
-            } else {
-                if (direction == UP) {
+            } 
+            else 
+            {
+                if (direction == UP) 
+                {
                     Pitch += ud_velocity;
                 }
-                if (direction == DOWN) {
+                if (direction == DOWN) 
+                {
                     Pitch -= ud_velocity;
                 }
             }
 
             // Yaw and Roll (turn will be made with the Front and time)
-            if (direction == ROT_R) {
+            if (direction == ROT_R) 
+            {
                 rot_lr(deltaTime, -1);
             }
-            if (direction == ROT_L) {
+            if (direction == ROT_L) 
+            {
                 rot_lr(deltaTime, 1);
             }
-            if (direction == ROT_RET) {
+            if (direction == ROT_RET) 
+            {
                 rot_lr(deltaTime, 0);
             }
         }
         
-        
         if (Position.y < 0) {
             pause = true;
         }
-
-
-
 
         // update the front vec after all those Yaw / Front / Pitch
         glm::vec3 front;
@@ -397,7 +422,8 @@ public:
     }
 
 
-    void rot_lr(float deltaTime, int flag) {
+    void rot_lr(float deltaTime, int flag) 
+    {
         // plane(in rad): v=1.2517, full to 1.064, at 0.85s
         int state = flag;
         // full circle at... 10.0s
@@ -446,12 +472,10 @@ public:
         int v_to_show = MovementSpeed * 25.2f;
         int h_to_show = Position.y * 7.0f;
         // std::cout << "\t" << v_to_show << " " << MovementSpeed << std::endl;
-        if (fonts.Draw(shadermap, v_to_show, h_to_show)) {
+        if (fonts.Draw(shadermap, v_to_show, h_to_show)) 
+        {
             pause = true;                           // invalid number to show...
         }
-        
-        
-        
         
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glm::mat4 model = glm::mat4(1.0f);
@@ -508,7 +532,8 @@ public:
         // the point and line...?
         // only when visiable
         // disable when alt...?
-        if (!free_view) {
+        if (!free_view) 
+        {
             glm::mat4 view_fix = glm::mat4(1.0f);
             glm::mat4 proj_fix = glm::mat4(1.0f);
             glm::mat4 modl_fix = glm::mat4(1.0f);
@@ -562,7 +587,8 @@ public:
         ///////////////////////////////////////////////////////////////////////////////////////////////////
 
         // coords
-        for(int i=0; i<3; i++) {
+        for(int i=0; i<3; i++) 
+        {
             glUseProgram(shaderProgram);
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -570,13 +596,18 @@ public:
             // render the line
             glBindVertexArray(line_VAO);
             glm::mat4 model_r = glm::mat4(1.0f);
-            if (i == 0) {
+            if (i == 0) 
+            {
                 model_r = glm::rotate(model_r, 1.57f, glm::vec3(1.0f, 0.0f, 0.0f));             // X: no rotation
                 glUniform4f(glGetUniformLocation(shaderProgram, "inColor"), 1.0f, 0.0f, 0.0f, 1.0f);                   // red
-            } else if (i == 1) {
+            } 
+            else if (i == 1) 
+            {
                 model_r = glm::rotate(model_r, 1.57f, glm::vec3(0.0f, 1.0f, 0.0f));             // -Z
                 glUniform4f(glGetUniformLocation(shaderProgram, "inColor"), 0.0f, 1.0f, 0.0f, 1.0f);                   // green
-            } else {
+            } 
+            else 
+            {
                 model_r = glm::rotate(model_r, 1.57f, glm::vec3(0.0f, 0.0f, 1.0f));             // Y
                 glUniform4f(glGetUniformLocation(shaderProgram, "inColor"), 0.0f, 0.0f, 1.0f, 1.0f);                   // blue
             }
@@ -586,7 +617,5 @@ public:
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model_r));
             glDrawArrays(GL_LINES, 0, 2);
         }
-
-
     }
 };

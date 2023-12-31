@@ -64,11 +64,18 @@ glm::vec3 blk_pos[] = {
     glm::vec3(0.0f, 0.0f, -16.0f)
 };
 
+typedef struct aabb_box {
+    glm::vec3 ld_point;
+    glm::vec3 edges;
+} aabb_box;
 
 class Ship {
 public:
     unsigned int VAO[3], VBO[3];
     unsigned int shaderProgram;
+    aabb_box b_ship = {glm::vec3(2.207f, 1.5f, 12.5f), glm::vec3(0.0f, 1.5f, -12.5f)};
+    aabb_box b_tow1 = {glm::vec3(0.512f, 1.08f,  2.212f), glm::vec3(1.695f, 4.08f,  -8.589f)};
+    aabb_box b_tow2 = {glm::vec3(0.815f, 2.963f, 1.443f), glm::vec3(1.392f, 5.963f, -12.243f)};
     Ship() {
 
     };
@@ -91,7 +98,7 @@ public:
 
         glGenVertexArrays(3, VAO);
         glGenBuffers(3, VBO);
-        
+
         glBindVertexArray(VAO[0]);
         glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
         glBufferData(GL_ARRAY_BUFFER, sizeof(box_ship), box_ship, GL_STATIC_DRAW);

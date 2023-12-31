@@ -103,7 +103,8 @@ public:
         glEnableVertexAttribArray(1); 
     }
 
-    int Draw(unsigned int shaderProgram, int velocity, int height) {
+    int Draw(unsigned int shaderProgram, int velocity, int height) 
+    {
         glUseProgram(shaderProgram);
         int num = velocity;
         int pl = 1000;

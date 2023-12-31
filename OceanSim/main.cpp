@@ -14,6 +14,7 @@
 #include "include/ocean.h"
 #include "include/oceanshader.h"
 #include "include/skybox.h"
+#include "include/collision.h"
 #include <iostream>
 
 // added
@@ -22,6 +23,8 @@
 #include "include/texture.h"
 #include "include/camera.h"
 #include "include/ship.h"
+
+#include "include/post_effect.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int w, int h);
@@ -64,10 +67,10 @@ bool firstMouse = true;
 float deltaT = 0.0f;
 float last = 0.0f;
 
-
 int stop = 0;
 
-
+glm::vec3 collid_pos;
+bool is_colli;
 
 int main()
 {
@@ -115,6 +118,9 @@ int main()
     Ship ship;
     ship.init();
 
+    Effect effect;
+    effect.init();
+
     shader.use();
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -128,9 +134,6 @@ int main()
     shader.setInt("skybox", 0);
 
     shader.setInt("ourTexture", 0);
-
-
-
 
     // glm::vec3 old_cam = cameraPos;
     // glm::vec3 new_cam = cameraPos;
@@ -191,10 +194,24 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
 
 
+        // do collision
+        if(!is_colli)
+        {
+            is_colli = collision_detect(camera.plane, ship, collid_pos);
+            if(is_colli)
+            {
+                camera.plane.is_crash();
+                effect.begin_explode();
+            }
+        }
+
+        // update effect
+        effect.Update(deltaT, collid_pos, camera.Position);
 
         // draw
         ship.Draw(view, projection);
         camera.Draw(deltaT, view, projection);
+        effect.Draw(view, projection);
 
 
         shader.use();
