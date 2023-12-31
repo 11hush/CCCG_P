@@ -280,6 +280,18 @@ public:
         // Accel_brake to slow down and end
 
         // fall if 
+        if(MovementSpeed > 0) MovementSpeed -= Accel_brake * deltaTime;   
+        // update the front vec after all those Yaw / Front / Pitch
+        glm::vec3 front;
+        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front.y = sin(glm::radians(Pitch));
+        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        Front = glm::normalize(front);
+        // update right
+        Right = glm::normalize(glm::cross(Front, glm::vec3(0.0f, 1.0f, 0.0f)));
+        Up = glm::normalize(glm::cross(Right, Front));
+
+        Position += MovementSpeed * deltaTime * Front; 
     }
 
     bool ret_AoA(float deltaTime, float* roll_del) {
