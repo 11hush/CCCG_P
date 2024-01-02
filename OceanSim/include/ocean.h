@@ -58,12 +58,12 @@ public:
 
 
     // shaders
-    OceanShader heightShader = OceanShader("./shader/GenHeight.comp");
-    OceanShader xzShader = OceanShader("./shader/GenXZ.comp");
-    OceanShader normalShader = OceanShader("./shader/GenNormal.comp");
-    OceanShader fftxShader = OceanShader("./shader/FFTX.comp");
-    OceanShader fftyShader = OceanShader("./shader/FFTY.comp");
-    OceanShader finalShader = OceanShader("./shader/GenFinal.comp");
+    OceanShader heightShader = OceanShader("../shader/GenHeight.comp");
+    OceanShader xzShader = OceanShader("../shader/GenXZ.comp");
+    OceanShader normalShader = OceanShader("../shader/GenNormal.comp");
+    OceanShader fftxShader = OceanShader("../shader/FFTX.comp");
+    OceanShader fftyShader = OceanShader("../shader/FFTY.comp");
+    OceanShader finalShader = OceanShader("../shader/GenFinal.comp");
     
     // for FFT's index
     int bit_rev(int bit, int in) {

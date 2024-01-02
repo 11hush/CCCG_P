@@ -121,18 +121,19 @@ public:
     
     Plane() { }
 
+    bool is_ondeck() { return this->on_wheels; };
     void is_crash() { to_land = true; };
 
     void init(glm::vec3 Pos) {
         Position = Pos;
         // generate the VAOs, VBO, VEO... shader and texture.
         // fragment shader with one uniform color input, vertex shader with projection * view * model * position
-        shaderProgram = get_shader_later("shader/shader.vs", "shader/shader.fs");
+        shaderProgram = get_shader_later("../shader/shader.vs", "../shader/shader.fs");
         // no view and projection
-        shadermap = get_shader_later("shader/shader_tex_map.vs", "shader/shader_tex_map.fs");
+        shadermap = get_shader_later("../shader/shader_tex_map.vs", "../shader/shader_tex_map.fs");
         // map_texture = loadTexture("vac_map.png");
         // map_texture = loadTexture("grass.png");
-        map_texture = loadTexture("tex/fonts_low/map.png");
+        map_texture = loadTexture("../tex/fonts_low/map.png");
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -280,7 +281,8 @@ public:
         // Accel_brake to slow down and end
 
         // fall if 
-        if(MovementSpeed > 0) MovementSpeed -= Accel_brake * deltaTime;   
+        // if(MovementSpeed > 0) MovementSpeed -= Accel_brake * deltaTime;   
+        MovementSpeed *= 0.5;
         // update the front vec after all those Yaw / Front / Pitch
         glm::vec3 front;
         front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
@@ -546,6 +548,7 @@ public:
         // disable when alt...?
         if (!free_view) 
         {
+            std::cout << "here" << std::endl;
             glm::mat4 view_fix = glm::mat4(1.0f);
             glm::mat4 proj_fix = glm::mat4(1.0f);
             glm::mat4 modl_fix = glm::mat4(1.0f);

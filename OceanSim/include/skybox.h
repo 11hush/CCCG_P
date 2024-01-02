@@ -104,12 +104,12 @@ public:
     };
     std::vector<std::string> faces
     {
-        "./skybox/SunSetLeft2048.jpg",
-        "./skybox/SunSetRight2048.jpg",
-        "./skybox/SunSetUp2048.jpg",
-        "./skybox/SunSetDown2048.jpg",
-        "./skybox/SunSetFront2048.jpg",
-        "./skybox/SunSetBack2048.jpg"
+        "../skybox/SunSetLeft2048.jpg",
+        "../skybox/SunSetRight2048.jpg",
+        "../skybox/SunSetUp2048.jpg",
+        "../skybox/SunSetDown2048.jpg",
+        "../skybox/SunSetFront2048.jpg",
+        "../skybox/SunSetBack2048.jpg"
     };
     SkyBox() {
         glGenVertexArrays(1, &skyboxVAO);

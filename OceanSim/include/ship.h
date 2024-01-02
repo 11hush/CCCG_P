@@ -73,9 +73,9 @@ class Ship {
 public:
     unsigned int VAO[3], VBO[3];
     unsigned int shaderProgram;
-    aabb_box b_ship = {glm::vec3(2.207f, 1.5f, 12.5f), glm::vec3(0.0f, 1.5f, -12.5f)};
-    aabb_box b_tow1 = {glm::vec3(0.512f, 1.08f,  2.212f), glm::vec3(1.695f, 4.08f,  -8.589f)};
-    aabb_box b_tow2 = {glm::vec3(0.815f, 2.963f, 1.443f), glm::vec3(1.392f, 5.963f, -12.243f)};
+    aabb_box b_ship = {glm::vec3(-2.207f, 0.f, -25.f), glm::vec3(4.414f, 3.f, 25.f)};
+    aabb_box b_tow1 = {glm::vec3(1.183f, 3.f,  -10.801f), glm::vec3(1.024f, 2.16f, 4.424f)};
+    aabb_box b_tow2 = {glm::vec3(0.577f, 3.f, -13.686f), glm::vec3(1.63f, 5.926f, 2.886f)};
     Ship() {
 
     };
@@ -84,7 +84,7 @@ public:
     // 4.414
 
     void init() {
-        shaderProgram = get_shader_later("shader/shader.vs", "shader/shader.fs");
+        shaderProgram = get_shader_later("../shader/shader.vs", "../shader/shader.fs");
         float box_ship[180];
         float box_tow1[180];
         float box_tow2[180];
@@ -151,7 +151,7 @@ private:
             output[i*5] = x * boxVertices[i*5] + x_off;
             output[i*5 + 1] = y * boxVertices[i*5 + 1] + y_off;
             output[i*5 + 2] = z * boxVertices[i*5 + 2] + z_off;
-            // std::cout << output[i*5] << "\t" << output[i*5 + 1] <<  "\t" << output[i*5 + 2] << std::endl;
+            std::cout << output[i*5] << "\t" << output[i*5 + 1] <<  "\t" << output[i*5 + 2] << std::endl;
 
         }
     }

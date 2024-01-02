@@ -1,4 +1,4 @@
-#version 430 core
+#version 410 core
 // reference: https://learnopengl.com/Advanced-OpenGL/Cubemaps
 layout (location = 0) in vec3 aPos;
 

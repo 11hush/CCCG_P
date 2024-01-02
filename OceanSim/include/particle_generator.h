@@ -14,6 +14,19 @@
 
 #define FRAG_NUM 5
 
+glm::vec3 get_random_dir()
+{
+    float phi = 2 * M_PI * (float)rand() / RAND_MAX;
+    float costheta = -1 + 2 * (float)rand() / RAND_MAX;
+    float theta = std::acos(costheta);
+    return glm::vec3 (
+        sin(theta) * cos(phi),
+        sin(theta) * sin(phi),
+        cos(theta) 
+    );
+}
+
+
 enum Particle_Type {
     SMOKE, FLAME, FRAG
 };
@@ -67,7 +80,6 @@ private:
 
 void ParticleGenerator::init()
 {
-    // std::cout << "init" << std::endl;
     glGenVertexArrays(1, &VAO_);
     glBindVertexArray(VAO_);
 
@@ -91,7 +103,6 @@ void ParticleGenerator::init()
     if(!g_particule_color_data_) delete[] g_particule_color_data_;
     g_particule_position_size_data_ = new GLfloat[4*max_amount_];
     g_particule_color_data_ = new GLubyte[4*max_amount_];
-
     particles_.clear();
     for(int i = 0; i < max_amount_; i++)
     {
@@ -157,14 +168,14 @@ unsigned int ParticleGenerator::FirstUnusedParticle()
 {
     for (GLuint i = lastUsedParticle_; i < max_amount_; ++i) {
         if (particles_[i].life_ == -1){
-            lastUsedParticle = i;
+            lastUsedParticle_ = i;
             return i;
         }
     }
     // Otherwise, do a linear search
     for (GLuint i = 0; i < lastUsedParticle_; ++i){
         if (particles_[i].life_ == -1){
-            lastUsedParticle = i;
+            lastUsedParticle_ = i;
             return i;
         }
     }
@@ -176,19 +187,20 @@ unsigned int ParticleGenerator::FirstUnusedParticle()
 void ParticleGenerator::RespawnParticle(Particle& particle, glm::vec3 center_pos, glm::vec3 offset)
 {
     if(type_ == Particle_Type::FRAG)
-        InitFrag(particle, object.position_);
+        InitFrag(particle, center_pos);
     else if(type_ == Particle_Type::SMOKE)
-        InitSmoke(particle, object.position_);
-    else if(type_ == Particle_Type::FRAME)
-        InitFlame(particle, object.position_);
+        InitSmoke(particle, center_pos);
+    else if(type_ == Particle_Type::FLAME)
+        InitFlame(particle, center_pos);
 }
 
 void ParticleGenerator::Draw(glm::mat4 view_mat, glm::mat4 proj_mat)
 {
+    float cur = static_cast<float>(glfwGetTime());
     glUseProgram(shader_);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "view"), 1, GL_FALSE, glm::value_ptr(view_mat));
     glUniformMatrix4fv(glGetUniformLocation(shader_, "projection"), 1, GL_FALSE, glm::value_ptr(proj_mat));
-    glm::vec3 camera_right_w = glm::vec3(view_mat[0][0], view_mat[0][1], view_mat[0][2]);
+    glm::vec3 camera_right_w = glm::vec3(view_mat[0][0], view_mat[1][0], view_mat[2][0]);
     glUniform3fv(glGetUniformLocation(shader_, "CameraRight_worldspace"), 1, glm::value_ptr(camera_right_w));
     glm::vec3 camera_up_w = glm::vec3(view_mat[0][1], view_mat[1][1], view_mat[2][1]);
     glUniform3fv(glGetUniformLocation(shader_, "CameraUp_worldspace"), 1, glm::value_ptr(camera_up_w));
@@ -215,6 +227,7 @@ void ParticleGenerator::Draw(glm::mat4 view_mat, glm::mat4 proj_mat)
     glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
 	glVertexAttribDivisor(2, 1);
+    float time1 = static_cast<float>(glfwGetTime());
 
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -224,6 +237,7 @@ void ParticleGenerator::Draw(glm::mat4 view_mat, glm::mat4 proj_mat)
     glUniform1i(glGetUniformLocation(shader_, "myTextureSampler"), 0);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, amount_);
+    float time2 = static_cast<float>(glfwGetTime());
 
     glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -231,34 +245,167 @@ void ParticleGenerator::Draw(glm::mat4 view_mat, glm::mat4 proj_mat)
     glBindVertexArray(0);
 }
 
+#define SMOKE_LIFE  10
 void ParticleGenerator::InitSmoke(Particle& particle, glm::vec3 center_pos)
 {
+    // init age and life
+    particle.age_ = 0;
+    particle.life_ = SMOKE_LIFE;
 
+    // init position
+    float u = (float)rand() / RAND_MAX;          
+    float spread_off = 0.01f;
+    float r_off = spread_off * (std::pow(u, 1/3));
+    glm::vec3 random_off = r_off * get_random_dir();
+    particle.position_ = center_pos + random_off;
+
+    // init size
+    particle.size_ = 0.0125f * (float)rand() / RAND_MAX + 0.035f;
+
+    // init velocity and acceleration
+    float spread_v = 0.01f;
+    glm::vec3 v = spread_v * (std::powf(u, 1/3)) * get_random_dir();
+    particle.velocity_ = v;
+    particle.acceleration_ = glm::vec3(0.f, 0.f, 0.f);
+
+    // init size grow rate
+    particle.grow_rate_ = 2.f;
+
+    // init color
+    particle.r = particle.g = particle.b = particle.a = 255;
 }
 
+#define FLAME_AGE   2
 void ParticleGenerator::InitFlame(Particle& particle, glm::vec3 center_pos)
 {
+    // init age and life
+    particle.age_ = 0;
+    particle.life_ = FLAME_AGE;
 
+    // init position
+    float u = (float)rand() / RAND_MAX;          
+    float spread_off = 0.05f;
+    float r_off = spread_off * (std::powf(u, 1/3));
+    glm::vec3 random_off = r_off * get_random_dir();
+    particle.position_ = center_pos + random_off;
+
+    // init size
+    particle.size_ = 0.0125f * (float)rand() / RAND_MAX + 0.025f;
+
+    // init velocity and acceleration
+    particle.velocity_ = 0.2f * std::powf((float)rand() / RAND_MAX, 1/3) * get_random_dir();
+    particle.acceleration_ = -2.f * particle.velocity_;
+
+    // init size grow rate
+    particle.grow_rate_ = 1.f;
+
+    // init color
+    particle.r = particle.g = particle.b = particle.a = 255;
 }
 
+glm::vec3 frag_a[] = {
+    glm::vec3(1.0f, -1.0f, 1.0f),
+    glm::vec3(-2.0f, -1.0f, 1.5f),
+    glm::vec3(1.f, 1.f, -2.f),
+    glm::vec3(-0.0f, 1.0f, 2.f),
+    glm::vec3(2.5f, -0.5f, 0.0f)    };
+int frag_idx = 0;
+#define FRAG_LIFE   5
 void ParticleGenerator::InitFrag(Particle& particle, glm::vec3 center_pos)
 {
+    // init age and life
+    particle.age_ = 0;
+    particle.life_ = FRAG_LIFE + 0.5 * (float)rand() / RAND_MAX;
 
+    // init position
+    float u = (float)rand() / RAND_MAX;          
+    float spread_off = 0.01f;
+    float r_off = spread_off * (std::pow(u, 1/3));
+    glm::vec3 random_off = r_off * get_random_dir();
+    particle.position_ = center_pos + random_off;
+
+    // init velocity
+    particle.velocity_ = glm::vec3(0.f);
+    particle.acceleration_ = frag_a[frag_idx];
+    frag_idx = (frag_idx + 1) % FRAG_NUM;
+
+    // init size
+    particle.size_ = 0.015f * (float)rand() / RAND_MAX;
+
+    // init size change rate
+    particle.grow_rate_ = 0.7 * particle.size_ / particle.life_;
+
+    // init color
+    particle.r = particle.g = particle.b = particle.a = 255;
 }
     
 void ParticleGenerator::UpdateSmoke(Particle& particle, float dt)
 {
+    // update velocity and position
+    if(!particle.age_)
+        particle.velocity_ += particle.acceleration_ * (dt / 2);
+    else
+        particle.velocity_ += particle.acceleration_ * dt;
+    particle.position_ += particle.velocity_ * dt;
 
+    // update acc
+    particle.acceleration_ = - 0.01f * particle.velocity_;
+
+    // update size
+    particle.size_ += particle.grow_rate_ * dt;
+    particle.grow_rate_ *= 0.7;
+    if(particle.grow_rate_ < 0.05f) particle.grow_rate_ = 0.05f;
+
+    // update alpha
+    particle.a = (particle.a - dt * 10 < 0) ? 0 : particle.a - dt * 10;
 }
 
 void ParticleGenerator::UpdateFlame(Particle& particle, float dt)
 {
+    // update velocity and position
+    if(!particle.age_)
+        particle.velocity_ += particle.acceleration_ * (dt / 2);
+    else
+    {
+        glm::vec3 dv = particle.acceleration_ * dt;
+        if(fabs(particle.velocity_.x) < fabs(dv.x)) particle.velocity_.x = 0;
+        else    particle.velocity_.x += dv.x;
+        if(fabs(particle.velocity_.y) < fabs(dv.y)) particle.velocity_.y = 0;
+        else    particle.velocity_.y += dv.y;
+        if(fabs(particle.velocity_.z) < fabs(dv.z)) particle.velocity_.z = 0;
+        else    particle.velocity_.z += dv.z;
+    }
+    particle.position_ += particle.velocity_ * dt;
 
+    // update size
+    particle.size_ += particle.grow_rate_ * dt;
+    particle.grow_rate_ /= 2.f;
+
+    // update alpha
+    // 
+    particle.a = (particle.a - dt * 200 < 0) ? 0 : particle.a - dt * 200;
 }
 
+glm::vec3 grativity(0.f, -1.5f, 0.f);
 void ParticleGenerator::UpdateFrag(Particle& particle, float dt)
 {
+    // update velocity and position
+    if(!particle.age_)
+        particle.velocity_ += particle.acceleration_ * (dt / 2);
+    else
+        particle.velocity_ += (particle.acceleration_ + grativity) * dt;
+    particle.position_ += particle.velocity_ * dt;
 
+    // update acc
+    particle.acceleration_ *= 0.4;
+
+    // update size
+    particle.size_ += particle.grow_rate_ * dt;
+
+    // update alpha
+    // if(particle.age_ >= particle.life_ * 0.2)
+    // particle.a = -50 / powf(particle.life_*0.2f, 2) * powf((particle.age_ - particle.life_*0.2f), 2) + 50.f;
+    particle.a -= 200 * dt;
 }
 
 #endif

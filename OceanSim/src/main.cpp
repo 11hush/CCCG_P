@@ -79,15 +79,18 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OceanSim", NULL, NULL);
+    glfwMakeContextCurrent(window);
     if (!window)
     {
         std::cout << "Fail to create window" << std::endl;
         glfwTerminate();
         return 0;
     }
-    glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouseCall);
     glfwSetScrollCallback(window, scroll_callback);
@@ -112,12 +115,13 @@ int main()
     OceanShader shader("../shader/ocean_vert.vs", "../shader/ocean_frag.fs");
     OceanShader skyboxShader("../shader/6.1.skybox.vs", "../shader/6.1.skybox.fs");
 
-    camera.init(glm::vec3(-1.0f, 3.0f, 0.0f), glm::vec3(0.0f, 0.5f, 3.0f));
+
+
+    camera.init(glm::vec3(-1.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.5f, 3.0f));
     Ship ship;
     ship.init();
 
     Effect effect;
-    effect.init();
 
     shader.use();
     skyboxShader.use();
@@ -144,10 +148,15 @@ int main()
     while (d_cam.z < -1000.0) d_cam.z += 1000.0;
     while (!glfwWindowShouldClose(window))
     {
+
+
+
+
         //std::cout << "HI\n";
         float cur = static_cast<float>(glfwGetTime());
         deltaT = cur - last;
         last = cur;
+        std::cout << "dT: " << deltaT << std::endl << "begin: " << static_cast<float>(glfwGetTime()) << std::endl;
 
         // process the inputs
         processInput(window);
@@ -177,7 +186,7 @@ int main()
         // ocean256.calculate(deltaT);
         // ocean128.calculate(deltaT);
         // ocean64.calculate(deltaT);
-        ocean32.calculate(deltaT);
+        // ocean32.calculate(deltaT);
 
 
 
@@ -196,19 +205,24 @@ int main()
             {
                 camera.plane.is_crash();
                 effect.begin_explode();
+                std::cout << "colli!" << std::endl;
             }
             else
+            {
+                if(is_colli && camera.plane.is_ondeck())
+                    std::cout << "on deck" << std::endl;
                 is_colli = false;
+            }
         }
-
-        // update effect
-        effect.Update(deltaT, collid_pos, camera.Position);
 
         // draw
         ship.Draw(view, projection);
         camera.Draw(deltaT, view, projection);
+        std::cout << "camera: " << static_cast<float>(glfwGetTime()) << std::endl;
+        // update effect
+        effect.Update(deltaT, collid_pos, camera.Position);
         effect.Draw(view, projection);
-
+        std::cout << "effect: " << static_cast<float>(glfwGetTime()) << std::endl;
 
         shader.use();
         shader.setMat4("view", view);
@@ -260,7 +274,7 @@ int main()
                 ocean32.draw();
             }
         }
-
+        std::cout << "ocean: " << static_cast<float>(glfwGetTime()) << std::endl;
 
 
         skyboxShader.use();

@@ -18,6 +18,7 @@ public:
     GLfloat life_=-1;
     GLfloat age_=0;
     GLfloat camera_dist_=-1;
+    GLfloat grow_rate_;
 
     Particle()=default;
     Particle(glm::vec3 pos, glm::vec3 v_ini, glm::vec3 acc, GLfloat life) :

@@ -44,14 +44,14 @@ public:
         };
 
         // num 0 ~ 9
-        std::string name = "tex/fonts_low/";
+        std::string name = "../tex/fonts_low/";
         for(int i=0; i<10; i++) {
             std::string tex_name = name + std::to_string(i) + ".png";
             texture[i] = loadTexture(tex_name.c_str());
         }
-        ui_tex[0] = loadTexture("tex/fonts_low/speed.png");
-        ui_tex[1] = loadTexture("tex/fonts_low/alt.png");
-        ui_tex[2] = loadTexture("tex/fonts_low/pointer.png");
+        ui_tex[0] = loadTexture("../tex/fonts_low/speed.png");
+        ui_tex[1] = loadTexture("../tex/fonts_low/alt.png");
+        ui_tex[2] = loadTexture("../tex/fonts_low/pointer.png");
 
 
         glGenVertexArrays(1, &num_VAO);

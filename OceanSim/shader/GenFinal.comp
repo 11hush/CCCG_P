@@ -1,4 +1,4 @@
-#version 440 core
+#version 410 core
 const int LOCAL_WORK_GROUP_SIZE = 32;
 
 const int L = 1000;

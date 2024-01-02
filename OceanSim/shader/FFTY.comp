@@ -1,4 +1,4 @@
-#version 440 core
+#version 410 core
 
 //const int N = 256;
 // the needed steps of IFFT

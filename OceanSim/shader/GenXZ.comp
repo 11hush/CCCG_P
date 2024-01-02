@@ -1,4 +1,4 @@
-#version 440 core
+#version 410 core
 //used to calculate height from h0 h0conj
 
 const int LOCAL_WORK_GROUP_SIZE = 32;

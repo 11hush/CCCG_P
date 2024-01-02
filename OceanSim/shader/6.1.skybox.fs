@@ -1,4 +1,4 @@
-#version 430 core
+#version 410 core
 // reference: https://learnopengl.com/Advanced-OpenGL/Cubemaps
 out vec4 FragColor;
 
