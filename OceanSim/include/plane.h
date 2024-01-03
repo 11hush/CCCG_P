@@ -14,7 +14,7 @@
 // speed here: 0.xf / s --> v*7 = m/s
 // speed to show: km/h  --> v*7*3.6 = 25.2 * v
 
-
+extern glm::vec3 collid_pos;
 
 
 enum Camera_Movement {          // movements
@@ -83,8 +83,10 @@ private:
     bool pause = false;
 
     bool on_wheels = true;                  // on deck
-    bool to_land = false;
-    bool crash_deck = true;                 // to detect the first touch
+    bool to_land = false;                   // landing 
+    bool to_crash = false;                  // crashing
+    bool on_deck = false;                   // to detect the first touch
+    bool land_fail = false;
     bool take_off_suc = false;              // successful take off
 
     // 41.67 m/s = 5.95f/s
@@ -94,9 +96,12 @@ private:
     float MovementSpeed = 0.0f;
     float Accel = 1.5f;
     float Accel_on_ground = 1.4f;
-    float Accel_brake = 3.0f;
-    float velocity_on_wheel = 4.0f;         // limit
-
+    float Accel_brake = 2.856f;
+    float Accel_crash = 50.0f;
+    float velocity_on_wheel = 4.0f;                 // limit
+    float velocity_on_landing = 3.0f;               // 75
+    float pitch_on_landing = 6.f;   
+    float roll_on_landing = 6.f;
 
     float Roll_rate_time = 1.2517f;
 
@@ -122,7 +127,9 @@ public:
     Plane() { }
 
     bool is_ondeck() { return this->on_wheels; };
-    void is_crash() { to_land = true; };
+    void touch_deck() { on_deck = true; };
+    void touch_tow()  { to_crash = true; };
+    bool is_crash() { return to_crash; };
 
     void init(glm::vec3 Pos) {
         Position = Pos;
@@ -175,8 +182,6 @@ public:
         // texture cord
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
-
-
 
         float center_vertex[] = {
             -0.015f, 0.0f,  0.0f, 
@@ -237,7 +242,6 @@ public:
         Position += MovementSpeed * deltaTime * Front;
     }
 
-
     // if on_wheel (before take off)
     void bef_air(Camera_Movement direction, float deltaTime) {
         // Accelerate
@@ -258,7 +262,7 @@ public:
             on_wheels = false;
             
             std::cout << "speed and pitch:\t" << MovementSpeed << ": " << Pitch << std::endl;
-            std::cout << "Position:\t" << Position.x << " " << Position.y << " " << Position.z << std::endl;
+            std::cout << "\tPosition: " << Position.x << " " << Position.y << " " << Position.z << std::endl;
         } 
         else if (Position.z < -19.286f && Position.z > -25.0f) 
         {
@@ -272,17 +276,43 @@ public:
 
     }
 
-    // when crash on deck, to_land = false, and process_key call this (not when on tower)
-    void landing(Camera_Movement direction, float deltaTime) {
-        // ????
+    // when touch the deck, judge whether landing is succ or not
+    bool landing_succ()
+    {
+        bool succ = true;
+        if(MovementSpeed > velocity_on_landing)
+            succ = false;
+        if(fabs(Pitch) > pitch_on_landing)
+        {
+            std::cout << "Pitch: " << Pitch  << " vs " << pitch_on_landing << std::endl;
+            succ = false;
+        }
+        if(fabs(Roll) > roll_on_landing)
+            succ = false;
+        if(succ)
+            std::cout << "Landing success" << std::endl;
+        else
+            std::cout << "Landing failed" << std::endl;
+        std::cout   << "Speed: " << MovementSpeed << "\tPitch: " << Pitch << "\tRoll: " << Roll 
+                    << "Position: " << Position.x << "," << Position.y << "," << Position.z << std::endl;
+        return succ;
+    }
 
-        // detect angle and velocity..?
+    // crash
+    void crash(float deltaTime)
+    {
+        if(MovementSpeed)
+            std::cout << "Crash! speed: " << MovementSpeed;
+        if(MovementSpeed > 0) 
+            MovementSpeed -= deltaTime * Accel_crash;
+        else if(MovementSpeed < 0)
+            // MovementSpeed *= 0.5f;
+            MovementSpeed = 0.f;
+        // if(fabs(MovementSpeed) < 0.0001f)
+        //     MovementSpeed = 0.f;
+        if(MovementSpeed)
+            std::cout << "->" << MovementSpeed << std::endl;
 
-        // Accel_brake to slow down and end
-
-        // fall if 
-        // if(MovementSpeed > 0) MovementSpeed -= Accel_brake * deltaTime;   
-        MovementSpeed *= 0.5;
         // update the front vec after all those Yaw / Front / Pitch
         glm::vec3 front;
         front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
@@ -293,7 +323,37 @@ public:
         Right = glm::normalize(glm::cross(Front, glm::vec3(0.0f, 1.0f, 0.0f)));
         Up = glm::normalize(glm::cross(Right, Front));
 
+        Position += MovementSpeed * deltaTime * (Front + collid_pos - Position); 
+    }
+
+    // when crash on deck, to_land = false, and process_key call this (not when on tower)
+    void landing(Camera_Movement direction, float deltaTime) 
+    {
+        if(MovementSpeed)
+            std::cout << "landing! speed: " << MovementSpeed << " pitch: " << Pitch << std::endl; 
+        // 令飞机水平
+        if(Pitch < 0)   Pitch = std::min(0.f, Pitch + 5 * deltaTime);
+        else if(Pitch > 0)  Pitch = std::max(Pitch - 5 * deltaTime, 0.f);
+        if(Roll < 0)    Roll = std::min(0.f, Roll + 5 * deltaTime);
+        else if(Roll > 0)   Roll = std::max(Roll + 5 * deltaTime, 0.f);
+
+        MovementSpeed -= Accel_brake * deltaTime;
+        if(MovementSpeed <= 0)  MovementSpeed = 0;
+        // update the front vec after all those Yaw /   / Pitch
+        glm::vec3 front;
+        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front.y = sin(glm::radians(Pitch));
+        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        Front = glm::normalize(front);
+        // update right
+        Right = glm::normalize(glm::cross(Front, glm::vec3(0.0f, 1.0f, 0.0f)));
+        Up = glm::normalize(glm::cross(Right, Front));
+
         Position += MovementSpeed * deltaTime * Front; 
+
+        // To improve.
+        if(Position.z < -25.0 || Position.z > 0.0 || Position.x < -2.207 || Position.z > -2.207)
+            land_fail = true;
     }
 
     bool ret_AoA(float deltaTime, float* roll_del) {
@@ -334,14 +394,25 @@ public:
         {
             bef_air(direction, deltaTime);             // on deck
         } 
-        else if (!take_off_suc) 
+        else if (!take_off_suc || land_fail) 
         {                    // if fail to take off
             fall(deltaTime);
         } 
+        else if(to_crash)
+        {
+            crash(deltaTime);
+        }
         else if (to_land) 
         {
             landing(direction, deltaTime);
         } 
+        else if (on_deck)
+        {
+            std::cout << "touch deck" << std::endl;
+            to_land = landing_succ();
+            to_crash = !to_land;
+            on_deck = false;
+        }
         else 
         {                            // process key-input after in-air
             // change the velocity
@@ -482,6 +553,8 @@ public:
 
     // void Draw(float deltaTime, float Yaw, glm::mat4 view, glm::mat4 projection, glm::vec3 cam_pos, glm::vec3 cam_fnt, glm::vec3 cam_rgt, ROT_LR lr, ROT_UD ud, float arc_x = 0.0f, float arc_y = 0.0f) {
     void Draw(float deltaTime, glm::mat4 view, glm::mat4 projection, bool free_view = false) {
+        if(to_crash)
+            crash(deltaTime);
         // font
         int v_to_show = MovementSpeed * 25.2f;
         int h_to_show = Position.y * 7.0f;
@@ -548,7 +621,6 @@ public:
         // disable when alt...?
         if (!free_view) 
         {
-            std::cout << "here" << std::endl;
             glm::mat4 view_fix = glm::mat4(1.0f);
             glm::mat4 proj_fix = glm::mat4(1.0f);
             glm::mat4 modl_fix = glm::mat4(1.0f);

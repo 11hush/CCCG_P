@@ -63,7 +63,7 @@ public:
         smoke_1.Draw(view_mat, proj_mat); 
         smoke_2.Draw(view_mat, proj_mat);
         flame_1.Draw(view_mat, proj_mat);
-        // frag_1.Draw(view_mat, proj_mat);
+        frag_1.Draw(view_mat, proj_mat);
     };
 };
 
@@ -76,7 +76,7 @@ Exploder::Exploder() :
     unsigned int shader = get_shader_later("../shader/particle.vs", "../shader/particle.fs");
     unsigned int smoke_tex1 = loadTexture("../tex/particle/smoke1.png");
     unsigned int smoke_tex2 = loadTexture("../tex/particle/smoke2.png");
-    unsigned int flame_tex1 = loadTexture("../tex/particle/flame1.png");
+    unsigned int flame_tex1 = loadTexture("../tex/particle/fire.png");
     unsigned int frag_tex1 = loadTexture("../tex/particle/frag1.png");
 
     smoke_1.shader_ = shader;
@@ -108,6 +108,7 @@ public:
 
 void Effect::explode_init()
 {
+    std::cout << "begin explode" << std::endl;
     if(explode_begin_ && !is_exploding_)  
     {
         exploder_.Init();   

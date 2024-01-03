@@ -70,7 +70,7 @@ float last = 0.0f;
 int stop = 0;
 
 glm::vec3 collid_pos;
-bool is_colli;
+int is_colli;
 
 int main()
 {
@@ -103,9 +103,6 @@ int main()
         return 0;
     }
 
-
-
-
     glEnable(GL_DEPTH_TEST); // get the depth
     glEnable(GL_MULTISAMPLE);
     //248 g141 b30
@@ -117,7 +114,7 @@ int main()
 
 
 
-    camera.init(glm::vec3(-1.0f, 3.0f, 5.0f), glm::vec3(0.0f, 0.5f, 3.0f));
+    camera.init(glm::vec3(-1.0f, 3.0f, 0.0f), glm::vec3(0.0f, 0.5f, 3.0f));
     Ship ship;
     ship.init();
 
@@ -148,15 +145,10 @@ int main()
     while (d_cam.z < -1000.0) d_cam.z += 1000.0;
     while (!glfwWindowShouldClose(window))
     {
-
-
-
-
         //std::cout << "HI\n";
         float cur = static_cast<float>(glfwGetTime());
         deltaT = cur - last;
         last = cur;
-        std::cout << "dT: " << deltaT << std::endl << "begin: " << static_cast<float>(glfwGetTime()) << std::endl;
 
         // process the inputs
         processInput(window);
@@ -180,15 +172,11 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
         // ocean512.calculate(deltaT);
         // ocean256.calculate(deltaT);
         // ocean128.calculate(deltaT);
         // ocean64.calculate(deltaT);
         // ocean32.calculate(deltaT);
-
-
 
         // glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         // // glm::mat4 projection = glm::perspective(glm::radians(fov), (float)WIDTH / (float)HEIGHT, 0.1f, (float)ocean512.L * ocean512.num);
@@ -196,6 +184,14 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
+        // draw
+        ship.Draw(view, projection);
+        camera.Draw(deltaT, camera.GetViewMatrix(), projection);
+        glm::vec3 explode_pos = collid_pos * 0.6f + camera.plane.Position * 0.4f;
+        if(explode_pos.y < 3.0f)
+            explode_pos.y = 3.05f;
+        effect.Update(deltaT, collid_pos * 0.6f + camera.plane.Position * 0.4f, camera.Position);
+        effect.Draw(camera.GetViewMatrix(), projection);
 
         // do collision
         if(!is_colli)
@@ -203,26 +199,29 @@ int main()
             is_colli = collision_detect(camera.plane, ship, collid_pos);
             if(is_colli && !camera.plane.is_ondeck())
             {
-                camera.plane.is_crash();
-                effect.begin_explode();
-                std::cout << "colli!" << std::endl;
+                if(is_colli == COLLID_ON_SHIP)
+                    camera.plane.touch_deck();
+                else if(is_colli == COLLID_ON_TOW)
+                    camera.plane.touch_tow();
+                if(camera.plane.is_crash()) 
+                {
+                    effect.begin_explode();
+                    std::cout << "colli!" << std::endl;
+                    is_colli = true;
+                }
+                else
+                    is_colli = false;
             }
             else
             {
                 if(is_colli && camera.plane.is_ondeck())
-                    std::cout << "on deck" << std::endl;
+                    // std::cout << "on deck" << std::endl;
                 is_colli = false;
             }
         }
-
-        // draw
-        ship.Draw(view, projection);
-        camera.Draw(deltaT, view, projection);
-        std::cout << "camera: " << static_cast<float>(glfwGetTime()) << std::endl;
+        // std::cout << "camera: " << static_cast<float>(glfwGetTime()) << std::endl;
         // update effect
-        effect.Update(deltaT, collid_pos, camera.Position);
-        effect.Draw(view, projection);
-        std::cout << "effect: " << static_cast<float>(glfwGetTime()) << std::endl;
+        // std::cout << "effect: " << static_cast<float>(glfwGetTime()) << std::endl;
 
         shader.use();
         shader.setMat4("view", view);
@@ -274,8 +273,7 @@ int main()
                 ocean32.draw();
             }
         }
-        std::cout << "ocean: " << static_cast<float>(glfwGetTime()) << std::endl;
-
+        // std::cout << "ocean: " << static_cast<float>(glfwGetTime()) << std::endl;
 
         skyboxShader.use();
         view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix

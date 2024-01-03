@@ -75,7 +75,9 @@ public:
     unsigned int shaderProgram;
     aabb_box b_ship = {glm::vec3(-2.207f, 0.f, -25.f), glm::vec3(4.414f, 3.f, 25.f)};
     aabb_box b_tow1 = {glm::vec3(1.183f, 3.f,  -10.801f), glm::vec3(1.024f, 2.16f, 4.424f)};
+    // [1.183, 2.207] * [3, 5.16] * [-10.801, -6.377]
     aabb_box b_tow2 = {glm::vec3(0.577f, 3.f, -13.686f), glm::vec3(1.63f, 5.926f, 2.886f)};
+    // [0.577, 2.207] * [3, 8.926] * [-10.8, -13.686]
     Ship() {
 
     };

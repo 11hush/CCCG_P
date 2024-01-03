@@ -260,7 +260,7 @@ void ParticleGenerator::InitSmoke(Particle& particle, glm::vec3 center_pos)
     particle.position_ = center_pos + random_off;
 
     // init size
-    particle.size_ = 0.0125f * (float)rand() / RAND_MAX + 0.035f;
+    particle.size_ = 0.0125f * (float)rand() / RAND_MAX + 0.06f;
 
     // init velocity and acceleration
     float spread_v = 0.01f;
@@ -269,7 +269,7 @@ void ParticleGenerator::InitSmoke(Particle& particle, glm::vec3 center_pos)
     particle.acceleration_ = glm::vec3(0.f, 0.f, 0.f);
 
     // init size grow rate
-    particle.grow_rate_ = 2.f;
+    particle.grow_rate_ = 2.2f;
 
     // init color
     particle.r = particle.g = particle.b = particle.a = 255;
@@ -290,14 +290,14 @@ void ParticleGenerator::InitFlame(Particle& particle, glm::vec3 center_pos)
     particle.position_ = center_pos + random_off;
 
     // init size
-    particle.size_ = 0.0125f * (float)rand() / RAND_MAX + 0.025f;
+    particle.size_ = 0.0125f * (float)rand() / RAND_MAX + 0.052f;
 
     // init velocity and acceleration
     particle.velocity_ = 0.2f * std::powf((float)rand() / RAND_MAX, 1/3) * get_random_dir();
     particle.acceleration_ = -2.f * particle.velocity_;
 
     // init size grow rate
-    particle.grow_rate_ = 1.f;
+    particle.grow_rate_ = 1.5f;
 
     // init color
     particle.r = particle.g = particle.b = particle.a = 255;
@@ -330,7 +330,7 @@ void ParticleGenerator::InitFrag(Particle& particle, glm::vec3 center_pos)
     frag_idx = (frag_idx + 1) % FRAG_NUM;
 
     // init size
-    particle.size_ = 0.015f * (float)rand() / RAND_MAX;
+    particle.size_ = 0.025f * (float)rand() / RAND_MAX;
 
     // init size change rate
     particle.grow_rate_ = 0.7 * particle.size_ / particle.life_;
@@ -357,7 +357,7 @@ void ParticleGenerator::UpdateSmoke(Particle& particle, float dt)
     if(particle.grow_rate_ < 0.05f) particle.grow_rate_ = 0.05f;
 
     // update alpha
-    particle.a = (particle.a - dt * 10 < 0) ? 0 : particle.a - dt * 10;
+    particle.a = (particle.a - dt * 50 < 0) ? 0 : particle.a - dt * 50;
 }
 
 void ParticleGenerator::UpdateFlame(Particle& particle, float dt)
